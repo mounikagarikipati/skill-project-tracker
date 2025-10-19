@@ -1,3 +1,4 @@
+# default/local (your choice: H2 or local docker)
 spring:
   application:
     name: skill-project-tracker
@@ -8,9 +9,8 @@ spring:
     activate:
       on-profile: default
   datasource:
-    url: jdbc:postgresql://localhost:5432/skilltracker
-    username: skilluser
-    password: skillpass
+    url: jdbc:h2:mem:skilldb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
   jpa:
     hibernate:
       ddl-auto: update
@@ -19,6 +19,7 @@ server:
   port: 8080
 
 ---
+# PRODUCTION (Render) — uses env vars from Render dashboard
 spring:
   config:
     activate:
