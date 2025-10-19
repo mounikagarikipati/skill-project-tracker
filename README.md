@@ -88,6 +88,7 @@ src/main/java/com/skilltracker/skill_project_tracker
 │   ├── AuthController.java
 │   ├── HomeController.java
 │   ├── ProjectController.java
+│   ├── SuggestionController.java
 │   └── SkillController.java
 ├── dto
 │   ├── LoginRequest.java
@@ -95,6 +96,7 @@ src/main/java/com/skilltracker/skill_project_tracker
 │   ├── SkillCreateRequest.java
 │   ├── SkillResponse.java
 │   ├── ProjectCreateRequest.java
+│   ├── Suggestion.java
 │   └── ProjectResponse.java
 ├── model
 │   ├── User.java
@@ -105,9 +107,6 @@ src/main/java/com/skilltracker/skill_project_tracker
 │   ├── SkillRepository.java
 │   └── ProjectRepository.java
 └── service
-    ├── AuthService.java
-    ├── SkillService.java
-    ├── ProjectService.java
     └── SuggestionService.java
 ```
 
