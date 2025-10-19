@@ -1,0 +1,10 @@
+# Ignore compiled classes and build artifacts
+target/
+
+# Ignore IDE settings
+.idea/
+.vscode/
+*.iml
+
+# Ignore macOS files
+.DS_Store
