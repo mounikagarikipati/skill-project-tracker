@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Skill/Project Tracker — MVP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <style>
+        :root{
+          --bg1:#0f172a; --bg2:#1e293b; --card:#0b1225;
+          --acc:#22d3ee; --acc2:#a78bfa; --text:#e5e7eb;
+          --muted:#94a3b8; --danger:#ef4444; --success:#22c55e;
+          --border:rgba(255,255,255,.08);
+        }
+        *{box-sizing:border-box}
+        body{
+          margin:0; min-height:100vh; color:var(--text);
+          background: radial-gradient(1200px 800px at 10% -10%, #1f2937 0%, transparent 50%),
+                      radial-gradient(1000px 600px at 100% 20%, #111827 0%, transparent 55%),
+                      linear-gradient(180deg, var(--bg1), var(--bg2));
+          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+        }
+        .container{max-width:1080px;margin:0 auto;padding:24px}
+        h1{font-weight:800;letter-spacing:.3px;margin:0 0 6px}
+        h2{margin:0 0 12px}
+        .subtitle{color:var(--muted);margin:0 0 16px}
+        .grid{display:grid;gap:20px}
+        .grid-2{grid-template-columns:1fr 1fr}
+        .grid-3{grid-template-columns:repeat(3,1fr)}
+        @media (max-width:980px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+        .card{
+          background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+          border:1px solid var(--border);
+          border-radius:16px; padding:20px;
+          box-shadow:0 10px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.04);
+        }
+        label{display:block;margin-top:10px;font-size:.95rem;color:#cbd5e1}
+        input,select,textarea{
+          width:100%; margin-top:6px; padding:12px 14px; font-size:1rem;
+          border-radius:12px; border:1px solid var(--border);
+          background:#0a0f1e; color:var(--text); outline:none;
+        }
+        textarea{resize:vertical}
+        .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+        .btn{
+          border:none; border-radius:12px; padding:12px 16px; cursor:pointer;
+          color:#06121f; font-weight:700;
+          background:linear-gradient(90deg, var(--acc), var(--acc2));
+          box-shadow:0 8px 20px rgba(34,211,238,.25);
+        }
+        .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+        .btn.tab{padding:10px 14px; border-radius:999px; font-weight:700}
+        .btn.tab.active{outline:2px solid var(--acc); background:transparent; color:var(--text)}
+        .status{margin-top:10px;font-size:.95rem}
+        .status.ok{color:var(--success)} .status.err{color:var(--danger)}
+        ul{padding-left:18px;margin:8px 0 0}
+        .muted{color:var(--muted)}
+        .header{
+          display:flex;align-items:center;justify-content:space-between;margin-bottom:16px
+        }
+        .brand{display:flex;align-items:center;gap:10px}
+        .dot{
+          width:12px;height:12px;border-radius:50%;
+          background:radial-gradient(circle at 30% 30%, #fff, #7dd3fc 40%, #2563eb 70%);
+          box-shadow:0 0 20px #60a5fa;
+        }
+        .chip{
+          position:relative;
+          display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;
+          font-size:.95rem;border:1px solid var(--border); color:var(--muted); cursor:pointer;
+          background:rgba(255,255,255,.02)
+        }
+        .chip strong{color:#fff}
+        .menu{
+          position:absolute; right:0; top:115%;
+          background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+          border:1px solid var(--border); border-radius:12px; min-width:160px; padding:8px; z-index:20;
+          box-shadow:0 10px 30px rgba(0,0,0,.3);
+        }
+        .menu button{width:100%; text-align:left; background:transparent; color:var(--text); border:0; padding:10px 12px; border-radius:8px; cursor:pointer}
+        .menu button:hover{background:rgba(255,255,255,.05)}
+        .hide{display:none}
+
+        /* Welcome animation */
+        .welcome{
+          font-size:1.05rem; color:#dbeafe; margin:0 0 10px; opacity:0; transform:translateY(-8px);
+          animation: welcome-slide .6s ease-out forwards;
+        }
+        @keyframes welcome-slide{
+          to{opacity:1; transform:translateY(0)}
+        }
+
+        /* Dashboard stat chips */
+        .stat{
+          display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:14px;border:1px solid var(--border);
+          background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+        }
+        .stat .label{color:var(--muted); font-size:.9rem}
+        .stat .value{font-size:1.6rem; font-weight:800}
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="header">
+        <div class="brand">
+            <div class="dot"></div>
+            <div>
+                <h1>Skill/Project Tracker — MVP</h1>
+                <div class="subtitle">Track skills & projects with a simple dashboard.</div>
+            </div>
+        </div>
+
+        <!-- user chip + dropdown -->
+        <div id="user-chip" class="chip hide" tabindex="0">
+            <span>Signed in as</span> <strong id="chip-name"></strong>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="opacity:.7">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div id="chip-menu" class="menu hide">
+                <button id="btn-goto-dashboard" type="button">Dashboard</button>
+                <button id="btn-goto-skills" type="button">Skills</button>
+                <button id="btn-goto-projects" type="button">Projects</button>
+                <hr style="border:0;border-top:1px solid var(--border);margin:6px 0">
+                <button id="btn-logout" type="button">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUTH VIEW -->
+    <section id="auth-view" class="grid grid-2">
+        <div class="card">
+            <h2>Login</h2>
+            <label>Username
+                <input id="login-username" placeholder="e.g., user"/>
+            </label>
+            <label>Password
+                <input id="login-password" type="password" placeholder="••••••••"/>
+            </label>
+            <div class="btn-row">
+                <button class="btn" id="btn-login" type="button">Login</button>
+            </div>
+            <div id="login-status" class="status muted"></div>
+        </div>
+
+        <div class="card">
+            <h2>Sign Up</h2>
+            <label>Username
+                <input id="signup-username" placeholder="choose a username"/>
+            </label>
+            <label>Email
+                <input id="signup-email" placeholder="you@example.com"/>
+            </label>
+            <label>Password
+                <input id="signup-password" type="password" placeholder="min 6 characters"/>
+            </label>
+            <div class="btn-row">
+                <button class="btn" id="btn-signup" type="button">Create Account</button>
+            </div>
+            <div id="signup-status" class="status muted"></div>
+        </div>
+    </section>
+
+    <!-- APP VIEW -->
+    <section id="app-view" class="hide">
+
+        <!-- Tabs -->
+        <div class="btn-row" style="margin-bottom:10px">
+            <button class="btn tab active" id="tab-dashboard"  type="button">Dashboard</button>
+            <button class="btn tab"         id="tab-skills"     type="button">Skills</button>
+            <button class="btn tab"         id="tab-projects"   type="button">Projects</button>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="view-dashboard">
+            <p id="welcome-line" class="welcome hide"></p>
+            <div class="grid grid-3">
+                <div class="stat">
+                    <span class="label">Total Skills</span>
+                    <span class="value" id="stat-skills">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Total Projects</span>
+                    <span class="value" id="stat-projects">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Completed Projects</span>
+                    <span class="value" id="stat-completed">0</span>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:16px">
+                <h2>Quick Actions</h2>
+                <div class="btn-row">
+                    <button class="btn" id="qa-add-skill" type="button">Add a Skill</button>
+                    <button class="btn" id="qa-add-project" type="button">Add a Project</button>
+                </div>
+            </div>
+
+            <!-- AI Suggestions (now correctly on the dashboard) -->
+            <div class="card" style="margin-top:16px">
+                <h2>AI Suggestions</h2>
+                <ul id="suggestions-list"><li class="muted">No suggestions yet.</li></ul>
+            </div>
+        </div>
+
+        <!-- Skills View -->
+        <div id="view-skills" class="hide">
+            <div class="card">
+                <h2>Add Skill</h2>
+                <div class="grid grid-2">
+                    <div>
+                        <label>Skill Name
+                            <input id="skill-name" placeholder="e.g., Java, SQL, Spring Boot"/>
+                        </label>
+                    </div>
+                    <div>
+                        <label>Level
+                            <select id="skill-level">
+                                <option value="">(optional)</option>
+                                <option>Beginner</option>
+                                <option>Intermediate</option>
+                                <option>Advanced</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+                <label>Notes
+                    <textarea id="skill-notes" rows="3" placeholder="(optional) Where you used it, what you learned..."></textarea>
+                </label>
+                <div class="btn-row">
+                    <button class="btn" id="btn-add-skill" type="button">Add Skill</button>
+                </div>
+                <div id="skill-status" class="status muted"></div>
+            </div>
+
+            <div class="card">
+                <h2>Your Skills</h2>
+                <ul id="skills-list"><li class="muted">No skills yet. Add one!</li></ul>
+            </div>
+        </div>
+
+        <!-- Projects View -->
+        <div id="view-projects" class="hide">
+            <div class="card">
+                <h2>Add Project</h2>
+                <div class="grid grid-2">
+                    <div>
+                        <label>Title
+                            <input id="proj-title" placeholder="e.g., Skill Tracker MVP"/>
+                        </label>
+                    </div>
+                    <div>
+                        <label>Status
+                            <select id="proj-status">
+                                <option>In Progress</option>
+                                <option>Completed</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+                <label>Tech Stack
+                    <input id="proj-tech" placeholder="e.g., Java, Spring Boot, PostgreSQL"/>
+                </label>
+                <label>Description
+                    <textarea id="proj-desc" rows="3" placeholder="(optional) Short summary..."></textarea>
+                </label>
+                <div class="btn-row">
+                    <button class="btn" id="btn-add-project" type="button">Add Project</button>
+                </div>
+                <div id="proj-status-msg" class="status muted"></div>
+            </div>
+
+            <div class="card">
+                <h2>Your Projects</h2>
+                <ul id="projects-list"><li class="muted">No projects yet. Add one!</li></ul>
+            </div>
+        </div>
+
+    </section>
+</div>
+
+<script>
+    /* ---------- helpers ---------- */
+    function $(id){ return document.getElementById(id); }
+    function setStatus(el, msg, cls='muted'){ if(!el) return; el.className='status '+cls; el.textContent=msg; }
+    function getUser(){ try { return JSON.parse(localStorage.getItem('user')); } catch { return null; } }
+    function setUser(u){ localStorage.setItem('user', JSON.stringify(u)); }
+    function clearUser(){ localStorage.removeItem('user'); }
+    const safeJson = async (res) => { try { return await res.json(); } catch { return null; } };
+
+    /* ---------- API endpoints ---------- */
+    const api = {
+      login:  '/api/auth/login',
+      signup: '/api/auth/register',
+      skills: '/api/skills',
+      projects: '/api/projects',
+      suggestions: '/api/suggestions'
+    };
+
+    /* ---------- view helpers ---------- */
+    function activateTab(tabId){
+      ['tab-dashboard','tab-skills','tab-projects'].forEach(id=>{
+        const el = $(id); if(!el) return;
+        if(id===tabId) el.classList.add('active'); else el.classList.remove('active');
+      });
+      $('view-dashboard').classList.toggle('hide', tabId!=='tab-dashboard');
+      $('view-skills').classList.toggle('hide', tabId!=='tab-skills');
+      $('view-projects').classList.toggle('hide', tabId!=='tab-projects');
+
+      // When switching to dashboard, refresh suggestions too
+      if (tabId === 'tab-dashboard') {
+        loadSuggestions();
+      }
+    }
+
+    function showApp(user){
+      $('auth-view')?.classList.add('hide');
+      $('app-view')?.classList.remove('hide');
+      $('user-chip')?.classList.remove('hide');
+      $('chip-name').textContent = user.username;
+
+      // welcome line animation
+      const w = $('welcome-line');
+      if (w){
+        w.textContent = `Welcome, ${user.username}!`;
+        w.classList.remove('hide'); // triggers CSS animation
+      }
+
+      activateTab('tab-dashboard');
+      refreshDashboard();
+      loadSuggestions(); // <— ensure suggestions appear after login
+    }
+    function showAuth(){
+      $('app-view')?.classList.add('hide');
+      $('auth-view')?.classList.remove('hide');
+      $('user-chip')?.classList.add('hide');
+      $('chip-name').textContent = '';
+      $('skills-list').innerHTML   = '<li class="muted">Login to see your skills.</li>';
+      $('projects-list').innerHTML = '<li class="muted">Login to see your projects.</li>';
+      $('stat-skills').textContent = '0';
+      $('stat-projects').textContent = '0';
+      $('stat-completed').textContent = '0';
+      const sug = $('suggestions-list');
+      if (sug) sug.innerHTML = '<li class="muted">No suggestions yet.</li>';
+    }
+
+    /* ---------- auth actions ---------- */
+    async function login(){
+      const u = $('login-username')?.value.trim();
+      const p = $('login-password')?.value.trim();
+      const s = $('login-status');
+      if(!u || !p){ setStatus(s,'Enter username and password','err'); return; }
+      setStatus(s,'Logging in…');
+      try{
+        const res = await fetch(api.login, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ username:u, password:p })
+        });
+        const data = await safeJson(res);
+        if(!res.ok){ setStatus(s, (data && (data.error||data.message)) || 'Login failed', 'err'); return; }
+        if(!data || data.userId==null){ setStatus(s,'Unexpected response from server','err'); return; }
+        setUser({ userId:data.userId, username:data.username || u });
+        setStatus(s,'Success!','ok');
+        showApp(getUser());
+      }catch(e){ setStatus(s,'Network error','err'); }
+    }
+
+    async function signup(){
+      const u = $('signup-username')?.value.trim();
+      const e = $('signup-email')?.value.trim();
+      const p = $('signup-password')?.value.trim();
+      const s = $('signup-status');
+      if(!u || !p){ setStatus(s,'Username and password required','err'); return; }
+      setStatus(s,'Creating account…');
+      try{
+        const res = await fetch(api.signup, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ username:u, email:e, password:p })
+        });
+        const data = await safeJson(res);
+        if(!res.ok){ setStatus(s, (data && (data.error||data.message)) || 'Sign up failed','err'); return; }
+        setUser({ userId:data.userId, username:data.username || u });
+        setStatus(s,'Account created!','ok');
+        showApp(getUser());
+      }catch(err){ setStatus(s,'Network error','err'); }
+    }
+
+    function logout(){
+      clearUser(); hideMenu(); showAuth();
+    }
+
+    /* ---------- skills ---------- */
+    async function addSkill(){
+      const user = getUser(); const s = $('skill-status');
+      if(!user){ setStatus(s,'Please login first.','err'); return; }
+      const name  = $('skill-name')?.value.trim();
+      const level = $('skill-level')?.value;
+      const notes = $('skill-notes')?.value.trim();
+      if(!name){ setStatus(s,'Skill name is required.','err'); return; }
+      setStatus(s,'Saving…');
+      try{
+        const res = await fetch(api.skills, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ userId:user.userId, name, level, notes })
+        });
+        const data = await safeJson(res);
+        if(!res.ok){ setStatus(s,'Failed to save.','err'); return; }
+        setStatus(s,'Saved!','ok');
+        $('skill-name').value=''; $('skill-level').value=''; $('skill-notes').value='';
+        await loadSkills();
+        refreshDashboard();
+        loadSuggestions(); // <— refresh AI tips after adding skill
+      }catch(e){ setStatus(s,'Network error','err'); }
+    }
+
+    async function loadSkills(){
+      const user = getUser();
+      const list = $('skills-list');
+      if(!user){ list.innerHTML = '<li class="muted">Login to see your skills.</li>'; return []; }
+      list.innerHTML = '<li class="muted">Loading…</li>';
+      try{
+        const res = await fetch(`${api.skills}?userId=${user.userId}`);
+        const data = await safeJson(res) || [];
+        if(!res.ok){ list.innerHTML = '<li class="muted">Failed to load skills.</li>'; return []; }
+        if(!data.length){ list.innerHTML = '<li class="muted">No skills yet. Add one!</li>'; return []; }
+        list.innerHTML = '';
+        data.forEach(s=>{
+          const li = document.createElement('li');
+          const when = s.createdAt ? new Date(s.createdAt).toLocaleString() : '';
+          li.textContent = `${s.name}${s.level?' ('+s.level+')':''}${when?' — '+when:''}`;
+          list.appendChild(li);
+        });
+        return data;
+      }catch(e){ list.innerHTML = '<li class="muted">Network error.</li>'; return []; }
+    }
+
+    /* ---------- projects ---------- */
+    async function addProject(){
+      const user = getUser(); const s = $('proj-status-msg');
+      if(!user){ setStatus(s,'Please login first.','err'); return; }
+      const title = $('proj-title')?.value.trim();
+      const description = $('proj-desc')?.value.trim();
+      const techStack = $('proj-tech')?.value.trim();
+      const status = $('proj-status')?.value;
+      if(!title){ setStatus(s,'Project title is required.','err'); return; }
+      setStatus(s,'Saving…');
+      try{
+        const res = await fetch(api.projects, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ userId:user.userId, title, description, techStack, status })
+        });
+        const data = await safeJson(res);
+        if(!res.ok){ setStatus(s,'Failed to save project.','err'); return; }
+        setStatus(s,'Saved!','ok');
+        $('proj-title').value=''; $('proj-desc').value=''; $('proj-tech').value=''; $('proj-status').value='In Progress';
+        await loadProjects();
+        refreshDashboard();
+        loadSuggestions(); // <— refresh AI tips after adding project
+      }catch(e){ setStatus(s,'Network error.','err'); }
+    }
+
+    async function loadProjects(){
+      const user = getUser();
+      const list = $('projects-list');
+      if(!user){ list.innerHTML = '<li class="muted">Login to see your projects.</li>'; return []; }
+      list.innerHTML = '<li class="muted">Loading…</li>';
+      try{
+        const res = await fetch(`${api.projects}?userId=${user.userId}`);
+        const data = await safeJson(res) || [];
+        if(!res.ok){ list.innerHTML = '<li class="muted">Failed to load projects.</li>'; return []; }
+        if(!data.length){ list.innerHTML = '<li class="muted">No projects yet. Add one!</li>'; return []; }
+        list.innerHTML = '';
+        data.forEach(p=>{
+          const li = document.createElement('li');
+          const when = p.createdAt ? new Date(p.createdAt).toLocaleString() : '';
+          li.textContent = `${p.title} — ${p.status}${p.techStack?' ['+p.techStack+']':''}${when?' — '+when:''}`;
+          list.appendChild(li);
+        });
+        return data;
+      }catch(e){ list.innerHTML = '<li class="muted">Network error.</li>'; return []; }
+    }
+
+    async function loadSuggestions(){
+      const user = getUser();
+      const list = $('suggestions-list');
+      if(!list) return;
+      if(!user){ list.innerHTML = '<li class="muted">Login to see suggestions.</li>'; return; }
+      list.innerHTML = '<li class="muted">Thinking…</li>';
+      try{
+        const res = await fetch(`${api.suggestions}?userId=${user.userId}`);
+        const data = await safeJson(res) || [];
+        if(!res.ok){ list.innerHTML = '<li class="muted">Failed to load suggestions.</li>'; return; }
+        if(!Array.isArray(data) || !data.length){ list.innerHTML = '<li class="muted">No suggestions right now.</li>'; return; }
+        list.innerHTML = '';
+        data.forEach(s=>{
+          const li = document.createElement('li');
+          const kind = (s.type||'TIP').toUpperCase();
+          li.innerHTML = `<strong>[${kind}] ${s.title}</strong>${s.reason?`<br><span class="muted">${s.reason}</span>`:''}${s.link?`<br><a href="${s.link}" target="_blank" rel="noreferrer">Resource</a>`:''}`;
+          list.appendChild(li);
+        });
+      }catch{ list.innerHTML = '<li class="muted">Network error.</li>'; }
+    }
+
+    /* ---------- dashboard ---------- */
+    async function refreshDashboard(){
+      const [skills, projects] = await Promise.all([loadSkills(), loadProjects()]);
+      $('stat-skills').textContent = skills.length;
+      $('stat-projects').textContent = projects.length;
+      $('stat-completed').textContent = projects.filter(p => (p.status||'').toLowerCase()==='completed').length;
+    }
+
+    /* ---------- chip menu ---------- */
+    function toggleMenu(){
+      $('chip-menu').classList.toggle('hide');
+    }
+    function hideMenu(){ $('chip-menu').classList.add('hide'); }
+
+    /* ---------- boot ---------- */
+    document.addEventListener('DOMContentLoaded', () => {
+      // wire auth
+      $('btn-login')?.addEventListener('click', login);
+      $('btn-signup')?.addEventListener('click', signup);
+
+      // wire tabs
+      $('tab-dashboard')?.addEventListener('click', ()=> activateTab('tab-dashboard'));
+      $('tab-skills')?.addEventListener('click', ()=> { activateTab('tab-skills'); loadSkills(); });
+      $('tab-projects')?.addEventListener('click', ()=> { activateTab('tab-projects'); loadProjects(); });
+
+      // quick actions
+      $('qa-add-skill')?.addEventListener('click', ()=> { activateTab('tab-skills'); });
+      $('qa-add-project')?.addEventListener('click', ()=> { activateTab('tab-projects'); });
+
+      // skills/projects actions
+      $('btn-add-skill')?.addEventListener('click', addSkill);
+      $('btn-add-project')?.addEventListener('click', addProject);
+
+      // chip + menu
+      $('user-chip')?.addEventListener('click', toggleMenu);
+      $('btn-goto-dashboard')?.addEventListener('click', ()=>{ hideMenu(); activateTab('tab-dashboard'); });
+      $('btn-goto-skills')?.addEventListener('click', ()=>{ hideMenu(); activateTab('tab-skills'); loadSkills(); });
+      $('btn-goto-projects')?.addEventListener('click', ()=>{ hideMenu(); activateTab('tab-projects'); loadProjects(); });
+      $('btn-logout')?.addEventListener('click', logout);
+      document.addEventListener('click', (e)=> {
+        const chip = $('user-chip'); const menu = $('chip-menu');
+        if(!chip || !menu) return;
+        if (!chip.contains(e.target)) hideMenu();
+      });
+
+      // initial view
+      const current = getUser();
+      if(current) showApp(current); else showAuth();
+    });
+</script>
+</body>
+</html>
