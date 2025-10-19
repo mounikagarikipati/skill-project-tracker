@@ -1,0 +1,24 @@
+# Build
+/target/
+/out/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+
+# Node (if any UI later)
+node_modules/
+
+# Credentials & temp
+*.env
+*.env.*
+application-*.properties
