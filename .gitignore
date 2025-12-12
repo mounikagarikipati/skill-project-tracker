@@ -31,3 +31,7 @@ src/main/resources/application-prod.properties
 # Do not commit secret config files
 src/main/resources/application-local.properties
 src/main/resources/application-prod.properties
+
+# Secrets (do not commit)
+src/main/resources/application-local.properties
+src/main/resources/application-prod.properties
