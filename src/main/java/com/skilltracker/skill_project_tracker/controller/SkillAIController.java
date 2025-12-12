@@ -31,7 +31,7 @@ public class SkillAIController {
     }
 
     // ----- Get one skill (used by modal) -----
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/ai")
     public ResponseEntity<Skill> getSkill(@PathVariable Long id) {
         return skillRepository.findById(id)
                 .map(ResponseEntity::ok)

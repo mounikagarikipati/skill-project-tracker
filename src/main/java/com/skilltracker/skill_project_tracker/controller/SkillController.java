@@ -65,4 +65,17 @@ public class SkillController {
             return ResponseEntity.ok(Map.of("message", "deleted"));
         }).orElse(ResponseEntity.notFound().build());
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getSkillById(@PathVariable Long id,
+                                          @RequestParam Long userId) {
+
+        return skillRepo.findByIdAndUser_Id(id, userId)
+                .<ResponseEntity<?>>map(s -> ResponseEntity.ok(
+                        new SkillResponse(s.getId(), s.getName(), s.getLevel(), s.getNotes(), s.getCreatedAt())
+                ))
+                .orElseGet(() -> ResponseEntity.status(404).body(Map.of("error", "skill not found")));
+    }
+
+
+
 }
