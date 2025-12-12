@@ -22,3 +22,8 @@ node_modules/
 *.env
 *.env.*
 application-*.properties
+
+# Local/prod configs with secrets
+src/main/resources/application-local.properties
+src/main/resources/application-prod.properties
+
