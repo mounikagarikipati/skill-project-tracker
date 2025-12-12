@@ -11,3 +11,10 @@ services:
         sync: false
       - key: JDBC_DATABASE_PASSWORD
         sync: false
+groq:
+  api:
+    key: ${GROQ_API_KEY:}
+
+openai:
+  api:
+    key: ${OPENAI_API_KEY:}
